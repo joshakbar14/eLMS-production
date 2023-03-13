@@ -126,7 +126,6 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-
 5. Open eLMS/settings.py and find this settings
 
 ```bash
@@ -167,8 +166,12 @@ localhost:5432:NAME:USER:PASSWORD
 9. Finally, deploy Django using Gunicorn
 
 ```bash
-gunicorn myproject.wsgi:application --bind 0.0.0.0:8000
+gunicorn eLMS.wsgi:application --bind 0.0.0.0:8000
 ```
+## Detailed Reading
+
+For detailed reading on Django deployment, here is some checklists from the Documentation
+https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 ## License
 
