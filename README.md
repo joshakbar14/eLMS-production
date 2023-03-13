@@ -104,14 +104,37 @@ This is for Linux VM domain server hosts.
 
 2. CD to the repository folder
 
-3. Open eLMS/settings.py and find this settings
+3. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+> **Note:** If you're using newer versions of python(3.10+), you may need to add the `--use-deprecated=legacy-resolver` option when installing dependencies with `pip` to avoid errors :
+
+```bash
+pip install -r requirements.txt --use-deprecated=legacy-resolver
+```
+
+4. Make migrations and migrate
+
+```bash
+python manage.py makemigrations
+```
+
+```bash
+python manage.py migrate
+```
+
+
+5. Open eLMS/settings.py and find this settings
 
 ```bash
 ## (replace the string below with your own site URL):
 ALLOWED_HOSTS = ['web-production-3640.up.railway.app', '127.0.0.1']
 ```
 
-4. If using PostgreSQL database, also add this settings in DATABASES
+6. If using PostgreSQL database, also add this settings in DATABASES
 
 ```bash
 DATABASES = {
@@ -125,8 +148,7 @@ DATABASES = {
 }
 ```
 
-Then go to the PostgreSQL folder in %APPDATA%\postgresql\.pg_service.conf
-Which contains the hostname, port, and user
+7. Then go to the PostgreSQL folder in %APPDATA%\postgresql\.pg_service.conf which contains the hostname, port, and user
 
 ```bash
 [my_service]
@@ -136,13 +158,13 @@ dbname=NAME
 port=5432
 ```
 
-And .my_pgpass for passwords
+8. and .my_pgpass for passwords
 
 ```bash
 localhost:5432:NAME:USER:PASSWORD
 ```
 
-5. Finally, deploy Django using Gunicorn
+9. Finally, deploy Django using Gunicorn
 
 ```bash
 gunicorn myproject.wsgi:application --bind 0.0.0.0:8000
