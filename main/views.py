@@ -223,6 +223,9 @@ def addAnnouncement(request, code):
             form.instance.course_code = Course.objects.get(code=code)
             if form.is_valid():
                 form.save()
+                ## Add email system
+
+                
                 messages.success(
                     request, 'Announcement added successfully.')
                 return redirect('/faculty/' + str(code))

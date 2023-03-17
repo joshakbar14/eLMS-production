@@ -187,7 +187,7 @@ class Submission(models.Model):
 class Material(models.Model):
     course_code = models.ForeignKey(
         Course, on_delete=models.CASCADE, null=False)
-    title = models.CharField(max_length=255, null=False)
+    title = models.CharField(max_length=255, null=False, default="")
     description = models.TextField(max_length=2000, null=False)
     datetime = models.DateTimeField(auto_now_add=True, null=False)
     file = models.FileField(upload_to='materials/', null=True, blank=True)
