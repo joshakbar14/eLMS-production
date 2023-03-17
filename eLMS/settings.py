@@ -44,6 +44,9 @@ INSTALLED_APPS = [
     'quiz.apps.QuizConfig',
     'django_cleanup.apps.CleanupConfig',
     'froala_editor',
+    'landingpage.apps.LandingpageConfig',
+
+
 ]
 
 MIDDLEWARE = [

@@ -485,6 +485,26 @@ def addCourseMaterial(request, code):
         return redirect('std_login')
 
 
+# 15-03-2023. Added Course Material View Page    
+def viewCourseMaterial(request, code, id):
+    if is_student_authorised(request, code):
+        course = Course.objects.get(code=code)
+        course_material = Material.objects.get(course_code=course, id=id)
+        
+        context = {
+            'course': course,
+            'materials': course_material,
+            'student': Student.objects.get(student_id=request.session['student_id'])
+        }
+
+        print(course_material)
+
+        return render(request, 'main/view-material.html', context)
+    else:
+        return redirect('std_login')
+   
+
+
 def deleteCourseMaterial(request, code, id):
     if is_faculty_authorised(request, code):
         course = Course.objects.get(code=code)

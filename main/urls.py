@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.std_login, name='std_login'),
+    path('elms', views.std_login, name='std_login'),
     path('my/', views.myCourses, name='myCourses'),
     path('facultyCourses/', views.facultyCourses, name='facultyCourses'),
     path('login/', views.std_login, name='std_login'),
@@ -35,6 +35,10 @@ urlpatterns = [
          views.addCourseMaterial, name='addCourseMaterial'),
     path('course-material/<int:code>/<int:id>/',
          views.deleteCourseMaterial, name='deleteCourseMaterial'),
+         ##
+    path('view-material/<int:code>/<int:id>/',
+         views.viewCourseMaterial, name='viewCourseMaterial'), 
+#           ##
     path('courses/', views.courses, name='courses'),
     path('departments/', views.departments, name='departments'),
     path('access/<int:code>/', views.access, name='access'),

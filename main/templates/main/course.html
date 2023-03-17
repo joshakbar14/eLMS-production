@@ -118,12 +118,10 @@
          <!-- section title ends -->
          <div>
             {% for material in materials  %}
+            <a href="{% url 'viewCourseMaterial' code=course.code id=material.id %}">Materials {{material.id}}</a>
             <!-- individual material starts -->
-            <p>{% autoescape off %}{{ material.description }}{% endautoescape %}</p>
+           
             <div class="d-flex justify-content-between text-break">
-               {% if material.file %}
-               <a class="fw-bold" href="{{ material.file.url }}"><span style="color:#9400d3" id="materialName">File : {{material.file.name}}</span></a><br>
-               {% endif %}
                <div class="text-muted">
                   {{material.post_date}}
                </div>
