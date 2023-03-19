@@ -96,6 +96,83 @@ Login as admin and add some courses, teacher and students.
 
 Demo : https://youtu.be/NyL2ajUNxYk
 
+## Production Deploy
+
+This is for Linux VM domain server hosts.
+
+1. Install GIT and clone this repository
+
+2. CD to the repository folder
+
+3. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+> **Note:** If you're using newer versions of python(3.10+), you may need to add the `--use-deprecated=legacy-resolver` option when installing dependencies with `pip` to avoid errors :
+
+```bash
+pip install -r requirements.txt --use-deprecated=legacy-resolver
+```
+
+4. Make migrations and migrate
+
+```bash
+python manage.py makemigrations
+```
+
+```bash
+python manage.py migrate
+```
+
+5. Open eLMS/settings.py and find this settings
+
+```bash
+## (replace the string below with your own site URL):
+ALLOWED_HOSTS = ['web-production-3640.up.railway.app', '127.0.0.1']
+```
+
+6. If using PostgreSQL database, also add this settings in DATABASES
+
+```bash
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'OPTIONS': {
+            'service': 'my_service',
+            'passfile': '.my_pgpass',
+        },
+    }
+}
+```
+
+7. Then go to the PostgreSQL folder in %APPDATA%\postgresql\.pg_service.conf which contains the hostname, port, and user
+
+```bash
+[my_service]
+host=localhost
+user=USER
+dbname=NAME
+port=5432
+```
+
+8. and .my_pgpass for passwords
+
+```bash
+localhost:5432:NAME:USER:PASSWORD
+```
+
+9. Finally, deploy Django using Gunicorn
+
+```bash
+gunicorn eLMS.wsgi:application --bind 0.0.0.0:8000
+```
+## Detailed Reading
+
+For detailed reading on Django deployment, here is some checklists from the Documentation
+https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
+
 ## License
 
 [The MIT License (MIT)](https://github.com/nz-m/eLMS-SWE/blob/main/LICENCE)
