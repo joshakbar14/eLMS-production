@@ -118,9 +118,9 @@ DATABASES = {
         # Name of MySQL user in CPanel
         'USER': 'patriaco_adminsql',
         # MySQL password
-        'PASSWORD': os.environ["DATABASE_PASSWORD"],
+        'PASSWORD': '{Uj172Wn{@A2',
         'HOST': 'localhost',
-        'PORT': '',
+        'PORT': '3306',
     }
 }
 
