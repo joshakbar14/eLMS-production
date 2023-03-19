@@ -8,6 +8,7 @@ from django.http import HttpResponseRedirect
 from .forms import AnnouncementForm, AssignmentForm, MaterialForm
 from django import forms
 from django.core import validators
+from django.core.mail import send_mail
 
 
 from django import forms
@@ -222,9 +223,17 @@ def addAnnouncement(request, code):
             form = AnnouncementForm(request.POST)
             form.instance.course_code = Course.objects.get(code=code)
             if form.is_valid():
-                form.save()
-                ## Add email system
 
+                ## Add email system
+                
+                announcement = form.save()
+                students = Student.objects.filter(course=announcement.course_code)
+                for student in students:
+                    subject = 'New announcement for {}'.format(announcement.course_code)
+                    message = 'Dear {},\n\nA new announcement has been added for the course {}. Please log in to your eLMS to view the announcement.\n\nBest regards,\nYour Faculty'.format(student.name, announcement.course_code)
+                    from_email = 'your_faculty_email@example.com'
+                    to_email = [student.email]
+                    send_mail(subject, message, from_email, to_email, fail_silently=False)
                 
                 messages.success(
                     request, 'Announcement added successfully.')
@@ -287,6 +296,18 @@ def addAssignment(request, code):
             form.instance.course_code = Course.objects.get(code=code)
             if form.is_valid():
                 form.save()
+
+                # Add email
+
+                assignment = form.save()
+                students = Student.objects.filter(course=assignment.course_code)
+                for student in students:
+                    subject = 'New assignment for {}'.format(assignment.course_code)
+                    message = 'Dear {},\n\nA new assignment has been added for the course {}. Please log in to your eLMS to view the assignment.\n\nBest regards,\nYour Faculty'.format(student.name, assignment.course_code)
+                    from_email = 'your_faculty_email@example.com'
+                    to_email = [student.email]
+                    send_mail(subject, message, from_email, to_email, fail_silently=False)
+
                 messages.success(request, 'Assignment added successfully.')
                 return redirect('/faculty/' + str(code))
         else:
