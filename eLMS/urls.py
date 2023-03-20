@@ -31,6 +31,7 @@ urlpatterns = [
     path('admin/', admin.site.urls, name='admin'),
     path('student/', views.guestStudent, name='guestStudent'),
     path('teacher/', views.guestFaculty, name='guestFaculty'),
+    path('myapp/', include('landingpage.urls')),
     path('', include('main.urls')),
     path('', include('discussion.urls')),
     path('', include('attendance.urls')),
