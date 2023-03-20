@@ -175,7 +175,7 @@ USE_TZ = False
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 
 STATIC_URL = '/static/'
-
+STATIC_ROOT = "/var/www/elms/static"
 
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
