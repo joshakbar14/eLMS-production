@@ -37,8 +37,8 @@
                <a href="{% url 'course' courses.code %}" class="btn btn-outline-dark px-5">Enter</a>
             </div>
             <div class="card-footer text-light fw-bold">
-               {% if courses.faculty %}
-               Course Teacher : {{ courses.faculty.name}}
+               {% if courses.teacher %}
+               Course Teacher : {{ courses.teacher.name}}
                {% else %}
                Teacher not assigned yet
                {% endif %}

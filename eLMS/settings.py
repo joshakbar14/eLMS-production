@@ -24,15 +24,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 import os
 
-# SECRET_KEY = 'django-insecure-_@876m&g2$*55!90p5cvqfsb)_f07n#33vhp2^3ggabcx#zyjr'
-try:
-    SECRET_KEY = os.environ["SECRET_KEY"]
-except KeyError as e:
-    raise RuntimeError("Could not find a SECRET_KEY in environment") from e
+SECRET_KEY = 'django-insecure-_@876m&g2$*55!90p5cvqfsb)_f07n#33vhp2^3ggabcx#zyjr'
+# try:
+#     SECRET_KEY = os.environ["SECRET_KEY"]
+# except KeyError as e:
+#     raise RuntimeError("Could not find a SECRET_KEY in environment") from e
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-ALLOWED_HOSTS = ['51.120.246.183']
+DEBUG = True
+ALLOWED_HOSTS = ['51.120.246.183','*']
 
 
 # Application definition

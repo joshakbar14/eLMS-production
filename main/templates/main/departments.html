@@ -1,12 +1,12 @@
 {% extends 'index.html' %}
 {% block title %} Departments | eLMS {% endblock title %}
 {% block profile %}
-{% if faculty  %} {% url 'profile' faculty.faculty_id %}
+{% if teacher  %} {% url 'profile' teacher.teacher_id %}
 {% else %} {% url 'profile' student.student_id %}
 {% endif %}
 {% endblock %}
 {% block user %}
-{% if faculty %} {{faculty.name}}
+{% if teacher %} {{teacher.name}}
 {% else %} {{student.name}}
 {% endif %}
 {% endblock user %}
@@ -38,7 +38,7 @@
                <th>Name</th>
                <th>Dept. ID</th>
                <th>No. of Students</th>
-               <th>Total Faculty</th>
+               <th>Total Teacher</th>
                <th>Total Courses</th>
             </tr>
          </thead>
@@ -55,7 +55,7 @@
                   {{dep.student_count}}
                </td>
                <td>
-                  {{dep.faculty_count}}
+                  {{dep.teacher_count}}
                </td>
                <td>
                   {{dep.course_count}}
