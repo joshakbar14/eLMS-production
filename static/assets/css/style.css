@@ -679,6 +679,15 @@ section {
   }
 }
 
+.counts .content .count-box span:after {
+  content: "+";
+  display: inline-block;
+  margin-left: 5px;
+  font-size: 24px;
+  color: #3498db;
+}
+
+
 /*--------------------------------------------------------------
 # Services
 --------------------------------------------------------------*/
