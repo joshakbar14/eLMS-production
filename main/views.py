@@ -1,7 +1,7 @@
 import datetime
 from django.shortcuts import redirect, render
 from django.contrib import messages
-from .models import Student, Course, Announcement, Assignment, Submission, Material, Teacher, Department
+from .models import Student, Course, Announcement, Assignment, Submission, Material, Teacher, Department, Partner
 from django.template.defaulttags import register
 from django.db.models import Count, Q
 from django.http import HttpResponseRedirect
@@ -13,18 +13,10 @@ from django.core.mail import send_mail
 
 from django import forms
 
-# iterable
-LOGIN_CHOICES =(
-    ("1", "Student"),
-    ("2", "Teacher"),
-    ("3", "Partner"),
-)
-
 class LoginForm(forms.Form):
-    id = forms.CharField(label='ID', max_length=10, validators=[
+    id = forms.CharField(label='ID', max_length=15, validators=[
                          validators.RegexValidator(r'^\d+$', 'Please enter a valid number.')])
     password = forms.CharField(widget=forms.PasswordInput)
-    loginas = forms.ChoiceField(choices=LOGIN_CHOICES)
 
 def is_student_authorised(request, code):
     course = Course.objects.get(code=code)
@@ -84,6 +76,8 @@ def std_login(request):
 def std_logout(request):
     request.session.flush()
     return redirect('std_login')
+
+# Partner view
 
 def partnerHomepage(request):
     pass

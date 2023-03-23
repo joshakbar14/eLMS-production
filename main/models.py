@@ -5,6 +5,7 @@ from froala_editor.fields import FroalaField
 
 class Student(models.Model):
     student_id = models.IntegerField(primary_key=True)
+    user_name = models.CharField(max_length=100, null=False, default='')
     name = models.CharField(max_length=100, null=False)
     email = models.EmailField(max_length=100, null=True, blank=True)
     password = models.CharField(max_length=255, null=False)
@@ -31,6 +32,7 @@ class Student(models.Model):
 
 class Teacher(models.Model):
     teacher_id = models.IntegerField(primary_key=True)
+    user_name = models.CharField(max_length=100, null=False, default='')
     name = models.CharField(max_length=100, null=False)
     email = models.EmailField(max_length=100, null=True, blank=True)
     password = models.CharField(max_length=255, null=False)
@@ -55,6 +57,7 @@ class Teacher(models.Model):
 ## Partner
 class Partner(models.Model):
     partner_id = models.IntegerField(primary_key=True)
+    user_name = models.CharField(max_length=100, null=False, default='')
     name = models.CharField(max_length=100, null=False)
     email = models.EmailField(max_length=100, null=True, blank=True)
     password = models.CharField(max_length=255, null=False)
