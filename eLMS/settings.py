@@ -103,26 +103,26 @@ WSGI_APPLICATION = 'eLMS.wsgi.application'
 #     }
 # }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         # MySQL settings use the name of the db not the path
-#         'NAME': 'patriaco_elms',
-#         # Name of MySQL user in CPanel
-#         'USER': 'patriaco_adminsql',
-#         # MySQL password
-#         'PASSWORD': '{Uj172Wn{@A2',
-#         'HOST': 'localhost',
-#         'PORT': '3306',
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        # MySQL settings use the name of the db not the path
+        'NAME': 'patriaco_elms',
+        # Name of MySQL user in CPanel
+        'USER': 'patriaco',
+        # MySQL password
+        'PASSWORD': 'patria1234',
+        'HOST': 'localhost',
+        'PORT': '3306',
+    }
+}
 
 
 # Password validation
