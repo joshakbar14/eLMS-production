@@ -5,6 +5,7 @@ from froala_editor.fields import FroalaField
 
 class Student(models.Model):
     student_id = models.IntegerField(primary_key=True)
+    user_name = models.CharField(max_length=100, null=False, default='')
     name = models.CharField(max_length=100, null=False)
     email = models.EmailField(max_length=100, null=True, blank=True)
     password = models.CharField(max_length=255, null=False)
@@ -29,29 +30,56 @@ class Student(models.Model):
         return self.name
 
 
-class Faculty(models.Model):
-    faculty_id = models.IntegerField(primary_key=True)
+class Teacher(models.Model):
+    teacher_id = models.IntegerField(primary_key=True)
+    user_name = models.CharField(max_length=100, null=False, default='')
     name = models.CharField(max_length=100, null=False)
     email = models.EmailField(max_length=100, null=True, blank=True)
     password = models.CharField(max_length=255, null=False)
     department = models.ForeignKey(
-        'Department', on_delete=models.CASCADE, null=False, related_name='faculty')
+        'Department', on_delete=models.CASCADE, null=False, related_name='teacher')
     role = models.CharField(
-        default="Faculty", max_length=100, null=False, blank=True)
+        default="Teacher", max_length=100, null=False, blank=True)
     photo = models.ImageField(upload_to='profile_pics', blank=True,
-                              null=False, default='profile_pics/default_faculty.png')
+                              null=False, default='profile_pics/default_teacher.png')
 
     def delete(self, *args, **kwargs):
-        if self.photo != 'profile_pics/default_faculty.png':
+        if self.photo != 'profile_pics/default_teacher.png':
             self.photo.delete()
         super().delete(*args, **kwargs)
 
     class Meta:
-        verbose_name_plural = 'Faculty'
+        verbose_name_plural = 'Teacher'
 
     def __str__(self):
         return self.name
+    
+## Partner
+class Partner(models.Model):
+    partner_id = models.IntegerField(primary_key=True)
+    user_name = models.CharField(max_length=100, null=False, default='')
+    name = models.CharField(max_length=100, null=False)
+    email = models.EmailField(max_length=100, null=True, blank=True)
+    password = models.CharField(max_length=255, null=False)
+    role = models.CharField(
+        default="Partner", max_length=100, null=False, blank=True)
+    course = models.ManyToManyField(
+        'Course', related_name='partner', blank=True)
+    photo = models.ImageField(upload_to='profile_pics', blank=True,
+                              null=False, default='profile_pics/default_student.png')
+    department = models.ForeignKey(
+        'Department', on_delete=models.CASCADE, null=False, blank=False, related_name='partner')
 
+    def delete(self, *args, **kwargs):
+        if self.photo != 'profile_pics/default_student.png':
+            self.photo.delete()
+        super().delete(*args, **kwargs)
+
+    class Meta:
+        verbose_name_plural = 'Partner'
+
+    def __str__(self):
+        return self.name    
 
 class Department(models.Model):
     department_id = models.IntegerField(primary_key=True)
@@ -67,8 +95,8 @@ class Department(models.Model):
     def student_count(self):
         return self.students.count()
 
-    def faculty_count(self):
-        return self.faculty.count()
+    def teacher_count(self):
+        return self.teacher.count()
 
     def course_count(self):
         return self.courses.count()
@@ -79,10 +107,10 @@ class Course(models.Model):
     name = models.CharField(max_length=255, null=False, unique=True)
     department = models.ForeignKey(
         Department, on_delete=models.CASCADE, null=False, related_name='courses')
-    faculty = models.ForeignKey(
-        Faculty, on_delete=models.SET_NULL, null=True, blank=True)
+    teacher = models.ForeignKey(
+        Teacher, on_delete=models.SET_NULL, null=True, blank=True)
     studentKey = models.IntegerField(null=False, unique=True)
-    facultyKey = models.IntegerField(null=False, unique=True)
+    teacherKey = models.IntegerField(null=False, unique=True)
 
     class Meta:
         unique_together = ('code', 'department', 'name')

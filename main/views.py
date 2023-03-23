@@ -1,7 +1,7 @@
 import datetime
 from django.shortcuts import redirect, render
 from django.contrib import messages
-from .models import Student, Course, Announcement, Assignment, Submission, Material, Faculty, Department
+from .models import Student, Course, Announcement, Assignment, Submission, Material, Teacher, Department, Partner
 from django.template.defaulttags import register
 from django.db.models import Count, Q
 from django.http import HttpResponseRedirect
@@ -13,12 +13,10 @@ from django.core.mail import send_mail
 
 from django import forms
 
-
 class LoginForm(forms.Form):
-    id = forms.CharField(label='ID', max_length=10, validators=[
+    id = forms.CharField(label='ID', max_length=15, validators=[
                          validators.RegexValidator(r'^\d+$', 'Please enter a valid number.')])
     password = forms.CharField(widget=forms.PasswordInput)
-
 
 def is_student_authorised(request, code):
     course = Course.objects.get(code=code)
@@ -28,14 +26,14 @@ def is_student_authorised(request, code):
         return False
 
 
-def is_faculty_authorised(request, code):
-    if request.session.get('faculty_id') and code in Course.objects.filter(faculty_id=request.session['faculty_id']).values_list('code', flat=True):
+def is_teacher_authorised(request, code):
+    if request.session.get('teacher_id') and code in Course.objects.filter(teacher_id=request.session['teacher_id']).values_list('code', flat=True):
         return True
     else:
         return False
 
 
-# Custom Login page for both student and faculty
+# Custom Login page for both student and teacher
 def std_login(request):
     error_messages = []
 
@@ -49,9 +47,14 @@ def std_login(request):
             if Student.objects.filter(student_id=id, password=password).exists():
                 request.session['student_id'] = id
                 return redirect('myCourses')
-            elif Faculty.objects.filter(faculty_id=id, password=password).exists():
-                request.session['faculty_id'] = id
-                return redirect('facultyCourses')
+            elif Teacher.objects.filter(teacher_id=id, password=password).exists():
+                request.session['teacher_id'] = id
+                return redirect('teacherCourses')
+            ## Partner
+            elif Partner.objects.filter(partner_id=id, password=password).exists():
+                request.session['partner_id'] = id
+                return redirect('partnerHomepage')
+            ## ##
             else:
                 error_messages.append('Invalid login credentials.')
         else:
@@ -61,8 +64,8 @@ def std_login(request):
 
     if 'student_id' in request.session:
         return redirect('/my/')
-    elif 'faculty_id' in request.session:
-        return redirect('/facultyCourses/')
+    elif 'teacher_id' in request.session:
+        return redirect('/teacherCourses/')
 
     context = {'form': form, 'error_messages': error_messages}
     return render(request, 'login_page.html', context)
@@ -74,6 +77,10 @@ def std_logout(request):
     request.session.flush()
     return redirect('std_login')
 
+# Partner view
+
+def partnerHomepage(request):
+    pass
 
 # Display all courses (student view)
 def myCourses(request):
@@ -82,12 +89,12 @@ def myCourses(request):
             student = Student.objects.get(
                 student_id=request.session['student_id'])
             courses = student.course.all()
-            faculty = student.course.all().values_list('faculty_id', flat=True)
+            teacher = student.course.all().values_list('teacher_id', flat=True)
 
             context = {
                 'courses': courses,
                 'student': student,
-                'faculty': faculty
+                'teacher': teacher
             }
 
             return render(request, 'main/myCourses.html', context)
@@ -97,15 +104,15 @@ def myCourses(request):
         return render(request, 'error.html')
 
 
-# Display all courses (faculty view)
-def facultyCourses(request):
+# Display all courses (teacher view)
+def teacherCourses(request):
     try:
-        if request.session['faculty_id']:
-            faculty = Faculty.objects.get(
-                faculty_id=request.session['faculty_id'])
+        if request.session['teacher_id']:
+            teacher = Teacher.objects.get(
+                teacher_id=request.session['teacher_id'])
             courses = Course.objects.filter(
-                faculty_id=request.session['faculty_id'])
-            # Student count of each course to show on the faculty page
+                teacher_id=request.session['teacher_id'])
+            # Student count of each course to show on the teacher page
             studentCount = Course.objects.all().annotate(student_count=Count('students'))
 
             studentCountDict = {}
@@ -119,11 +126,11 @@ def facultyCourses(request):
 
             context = {
                 'courses': courses,
-                'faculty': faculty,
+                'teacher': teacher,
                 'studentCount': studentCountDict
             }
 
-            return render(request, 'main/facultyCourses.html', context)
+            return render(request, 'main/teacherCourses.html', context)
 
         else:
             return redirect('std_login')
@@ -164,10 +171,10 @@ def course_page(request, code):
         return render(request, 'error.html')
 
 
-# Particular course page (faculty view)
-def course_page_faculty(request, code):
+# Particular course page (teacher view)
+def course_page_teacher(request, code):
     course = Course.objects.get(code=code)
-    if request.session.get('faculty_id'):
+    if request.session.get('teacher_id'):
         try:
             announcements = Announcement.objects.filter(course_code=course)
             assignments = Assignment.objects.filter(
@@ -185,11 +192,11 @@ def course_page_faculty(request, code):
             'announcements': announcements,
             'assignments': assignments[:3],
             'materials': materials,
-            'faculty': Faculty.objects.get(faculty_id=request.session['faculty_id']),
+            'teacher': Teacher.objects.get(teacher_id=request.session['teacher_id']),
             'studentCount': studentCount
         }
 
-        return render(request, 'main/faculty_course.html', context)
+        return render(request, 'main/teacher_course.html', context)
     else:
         return redirect('std_login')
 
@@ -198,7 +205,7 @@ def error(request):
     return render(request, 'error.html')
 
 
-# Display user profile(student & faculty)
+# Display user profile(student & teacher)
 def profile(request, id):
     try:
         if request.session['student_id'] == id:
@@ -208,9 +215,9 @@ def profile(request, id):
             return redirect('std_login')
     except:
         try:
-            if request.session['faculty_id'] == id:
-                faculty = Faculty.objects.get(faculty_id=id)
-                return render(request, 'main/faculty_profile.html', {'faculty': faculty})
+            if request.session['teacher_id'] == id:
+                teacher = Teacher.objects.get(teacher_id=id)
+                return render(request, 'main/teacher_profile.html', {'teacher': teacher})
             else:
                 return redirect('std_login')
         except:
@@ -218,7 +225,7 @@ def profile(request, id):
 
 
 def addAnnouncement(request, code):
-    if is_faculty_authorised(request, code):
+    if is_teacher_authorised(request, code):
         if request.method == 'POST':
             form = AnnouncementForm(request.POST)
             form.instance.course_code = Course.objects.get(code=code)
@@ -230,42 +237,42 @@ def addAnnouncement(request, code):
                 students = Student.objects.filter(course=announcement.course_code)
                 for student in students:
                     subject = 'New announcement for {}'.format(announcement.course_code)
-                    message = 'Dear {},\n\nA new announcement has been added for the course {}. Please log in to your eLMS to view the announcement.\n\nBest regards,\nYour Faculty'.format(student.name, announcement.course_code)
-                    from_email = 'your_faculty_email@example.com'
+                    message = 'Dear {},\n\nA new announcement has been added for the course {}. Please log in to your eLMS to view the announcement.\n\nBest regards,\nYour Teacher'.format(student.name, announcement.course_code)
+                    from_email = 'your_teacher_email@example.com'
                     to_email = [student.email]
                     send_mail(subject, message, from_email, to_email, fail_silently=False)
                 
                 messages.success(
                     request, 'Announcement added successfully.')
-                return redirect('/faculty/' + str(code))
+                return redirect('/teacher/' + str(code))
         else:
             form = AnnouncementForm()
-        return render(request, 'main/announcement.html', {'course': Course.objects.get(code=code), 'faculty': Faculty.objects.get(faculty_id=request.session['faculty_id']), 'form': form})
+        return render(request, 'main/announcement.html', {'course': Course.objects.get(code=code), 'teacher': Teacher.objects.get(teacher_id=request.session['teacher_id']), 'form': form})
     else:
         return redirect('std_login')
 
 
 def deleteAnnouncement(request, code, id):
-    if is_faculty_authorised(request, code):
+    if is_teacher_authorised(request, code):
         try:
             announcement = Announcement.objects.get(course_code=code, id=id)
             announcement.delete()
             messages.warning(request, 'Announcement deleted successfully.')
-            return redirect('/faculty/' + str(code))
+            return redirect('/teacher/' + str(code))
         except:
-            return redirect('/faculty/' + str(code))
+            return redirect('/teacher/' + str(code))
     else:
         return redirect('std_login')
 
 
 def editAnnouncement(request, code, id):
-    if is_faculty_authorised(request, code):
+    if is_teacher_authorised(request, code):
         announcement = Announcement.objects.get(course_code_id=code, id=id)
         form = AnnouncementForm(instance=announcement)
         context = {
             'announcement': announcement,
             'course': Course.objects.get(code=code),
-            'faculty': Faculty.objects.get(faculty_id=request.session['faculty_id']),
+            'teacher': Teacher.objects.get(teacher_id=request.session['teacher_id']),
             'form': form
         }
         return render(request, 'main/update-announcement.html', context)
@@ -274,23 +281,23 @@ def editAnnouncement(request, code, id):
 
 
 def updateAnnouncement(request, code, id):
-    if is_faculty_authorised(request, code):
+    if is_teacher_authorised(request, code):
         try:
             announcement = Announcement.objects.get(course_code_id=code, id=id)
             form = AnnouncementForm(request.POST, instance=announcement)
             if form.is_valid():
                 form.save()
                 messages.info(request, 'Announcement updated successfully.')
-                return redirect('/faculty/' + str(code))
+                return redirect('/teacher/' + str(code))
         except:
-            return redirect('/faculty/' + str(code))
+            return redirect('/teacher/' + str(code))
 
     else:
         return redirect('std_login')
 
 
 def addAssignment(request, code):
-    if is_faculty_authorised(request, code):
+    if is_teacher_authorised(request, code):
         if request.method == 'POST':
             form = AssignmentForm(request.POST, request.FILES)
             form.instance.course_code = Course.objects.get(code=code)
@@ -303,16 +310,16 @@ def addAssignment(request, code):
                 students = Student.objects.filter(course=assignment.course_code)
                 for student in students:
                     subject = 'New assignment for {}'.format(assignment.course_code)
-                    message = 'Dear {},\n\nA new assignment has been added for the course {}. Please log in to your eLMS to view the assignment.\n\nBest regards,\nYour Faculty'.format(student.name, assignment.course_code)
-                    from_email = 'your_faculty_email@example.com'
+                    message = 'Dear {},\n\nA new assignment has been added for the course {}. Please log in to your eLMS to view the assignment.\n\nBest regards,\nYour Teacher'.format(student.name, assignment.course_code)
+                    from_email = 'your_teacher_email@example.com'
                     to_email = [student.email]
                     send_mail(subject, message, from_email, to_email, fail_silently=False)
 
                 messages.success(request, 'Assignment added successfully.')
-                return redirect('/faculty/' + str(code))
+                return redirect('/teacher/' + str(code))
         else:
             form = AssignmentForm()
-        return render(request, 'main/assignment.html', {'course': Course.objects.get(code=code), 'faculty': Faculty.objects.get(faculty_id=request.session['faculty_id']), 'form': form})
+        return render(request, 'main/assignment.html', {'course': Course.objects.get(code=code), 'teacher': Teacher.objects.get(teacher_id=request.session['teacher_id']), 'form': form})
     else:
         return redirect('std_login')
 
@@ -356,7 +363,7 @@ def assignmentPage(request, code, id):
 
 
 def allAssignments(request, code):
-    if is_faculty_authorised(request, code):
+    if is_teacher_authorised(request, code):
         course = Course.objects.get(code=code)
         assignments = Assignment.objects.filter(course_code=course)
         studentCount = Student.objects.filter(course=course).count()
@@ -364,7 +371,7 @@ def allAssignments(request, code):
         context = {
             'assignments': assignments,
             'course': course,
-            'faculty': Faculty.objects.get(faculty_id=request.session['faculty_id']),
+            'teacher': Teacher.objects.get(teacher_id=request.session['teacher_id']),
             'studentCount': studentCount
 
         }
@@ -429,7 +436,7 @@ def addSubmission(request, code, id):
 
 def viewSubmission(request, code, id):
     course = Course.objects.get(code=code)
-    if is_faculty_authorised(request, code):
+    if is_teacher_authorised(request, code):
         try:
             assignment = Assignment.objects.get(course_code_id=code, id=id)
             submissions = Submission.objects.filter(
@@ -440,14 +447,14 @@ def viewSubmission(request, code, id):
                 'submissions': submissions,
                 'assignment': assignment,
                 'totalStudents': len(Student.objects.filter(course=course)),
-                'faculty': Faculty.objects.get(faculty_id=request.session['faculty_id']),
-                'courses': Course.objects.filter(faculty_id=request.session['faculty_id'])
+                'teacher': Teacher.objects.get(teacher_id=request.session['teacher_id']),
+                'courses': Course.objects.filter(teacher_id=request.session['teacher_id'])
             }
 
             return render(request, 'main/assignment-view.html', context)
 
         except:
-            return redirect('/faculty/' + str(code))
+            return redirect('/teacher/' + str(code))
     else:
         return redirect('std_login')
 
@@ -455,7 +462,7 @@ def viewSubmission(request, code, id):
 def gradeSubmission(request, code, id, sub_id):
     try:
         course = Course.objects.get(code=code)
-        if is_faculty_authorised(request, code):
+        if is_teacher_authorised(request, code):
             if request.method == 'POST':
                 assignment = Assignment.objects.get(course_code_id=code, id=id)
                 submissions = Submission.objects.filter(
@@ -479,8 +486,8 @@ def gradeSubmission(request, code, id, sub_id):
                     'submissions': submissions,
                     'assignment': assignment,
                     'totalStudents': len(Student.objects.filter(course=course)),
-                    'faculty': Faculty.objects.get(faculty_id=request.session['faculty_id']),
-                    'courses': Course.objects.filter(faculty_id=request.session['faculty_id'])
+                    'teacher': Teacher.objects.get(teacher_id=request.session['teacher_id']),
+                    'courses': Course.objects.filter(teacher_id=request.session['teacher_id'])
                 }
 
                 return render(request, 'main/assignment-view.html', context)
@@ -492,19 +499,19 @@ def gradeSubmission(request, code, id, sub_id):
 
 
 def addCourseMaterial(request, code):
-    if is_faculty_authorised(request, code):
+    if is_teacher_authorised(request, code):
         if request.method == 'POST':
             form = MaterialForm(request.POST, request.FILES)
             form.instance.course_code = Course.objects.get(code=code)
             if form.is_valid():
                 form.save()
                 messages.success(request, 'New course material added')
-                return redirect('/faculty/' + str(code))
+                return redirect('/teacher/' + str(code))
             else:
-                return render(request, 'main/course-material.html', {'course': Course.objects.get(code=code), 'faculty': Faculty.objects.get(faculty_id=request.session['faculty_id']), 'form': form})
+                return render(request, 'main/course-material.html', {'course': Course.objects.get(code=code), 'teacher': Teacher.objects.get(teacher_id=request.session['teacher_id']), 'form': form})
         else:
             form = MaterialForm()
-            return render(request, 'main/course-material.html', {'course': Course.objects.get(code=code), 'faculty': Faculty.objects.get(faculty_id=request.session['faculty_id']), 'form': form})
+            return render(request, 'main/course-material.html', {'course': Course.objects.get(code=code), 'teacher': Teacher.objects.get(teacher_id=request.session['teacher_id']), 'form': form})
     else:
         return redirect('std_login')
 
@@ -530,18 +537,18 @@ def viewCourseMaterial(request, code, id):
 
 
 def deleteCourseMaterial(request, code, id):
-    if is_faculty_authorised(request, code):
+    if is_teacher_authorised(request, code):
         course = Course.objects.get(code=code)
         course_material = Material.objects.get(course_code=course, id=id)
         course_material.delete()
         messages.warning(request, 'Course material deleted')
-        return redirect('/faculty/' + str(code))
+        return redirect('/teacher/' + str(code))
     else:
         return redirect('std_login')
 
 
 def courses(request):
-    if request.session.get('student_id') or request.session.get('faculty_id'):
+    if request.session.get('student_id') or request.session.get('teacher_id'):
 
         courses = Course.objects.all()
         if request.session.get('student_id'):
@@ -549,18 +556,18 @@ def courses(request):
                 student_id=request.session['student_id'])
         else:
             student = None
-        if request.session.get('faculty_id'):
-            faculty = Faculty.objects.get(
-                faculty_id=request.session['faculty_id'])
+        if request.session.get('teacher_id'):
+            teacher = Teacher.objects.get(
+                teacher_id=request.session['teacher_id'])
         else:
-            faculty = None
+            teacher = None
 
         enrolled = student.course.all() if student else None
         accessed = Course.objects.filter(
-            faculty_id=faculty.faculty_id) if faculty else None
+            teacher_id=teacher.teacher_id) if teacher else None
 
         context = {
-            'faculty': faculty,
+            'teacher': teacher,
             'courses': courses,
             'student': student,
             'enrolled': enrolled,
@@ -574,20 +581,20 @@ def courses(request):
 
 
 def departments(request):
-    if request.session.get('student_id') or request.session.get('faculty_id'):
+    if request.session.get('student_id') or request.session.get('teacher_id'):
         departments = Department.objects.all()
         if request.session.get('student_id'):
             student = Student.objects.get(
                 student_id=request.session['student_id'])
         else:
             student = None
-        if request.session.get('faculty_id'):
-            faculty = Faculty.objects.get(
-                faculty_id=request.session['faculty_id'])
+        if request.session.get('teacher_id'):
+            teacher = Teacher.objects.get(
+                teacher_id=request.session['teacher_id'])
         else:
-            faculty = None
+            teacher = None
         context = {
-            'faculty': faculty,
+            'teacher': teacher,
             'student': student,
             'deps': departments
         }
@@ -618,29 +625,29 @@ def access(request, code):
 
 
 def search(request):
-    if request.session.get('student_id') or request.session.get('faculty_id'):
+    if request.session.get('student_id') or request.session.get('teacher_id'):
         if request.method == 'GET' and request.GET['q']:
             q = request.GET['q']
             courses = Course.objects.filter(Q(code__icontains=q) | Q(
-                name__icontains=q) | Q(faculty__name__icontains=q))
+                name__icontains=q) | Q(teacher__name__icontains=q))
 
             if request.session.get('student_id'):
                 student = Student.objects.get(
                     student_id=request.session['student_id'])
             else:
                 student = None
-            if request.session.get('faculty_id'):
-                faculty = Faculty.objects.get(
-                    faculty_id=request.session['faculty_id'])
+            if request.session.get('teacher_id'):
+                teacher = Teacher.objects.get(
+                    teacher_id=request.session['teacher_id'])
             else:
-                faculty = None
+                teacher = None
             enrolled = student.course.all() if student else None
             accessed = Course.objects.filter(
-                faculty_id=faculty.faculty_id) if faculty else None
+                teacher_id=teacher.teacher_id) if teacher else None
 
             context = {
                 'courses': courses,
-                'faculty': faculty,
+                'teacher': teacher,
                 'student': student,
                 'enrolled': enrolled,
                 'accessed': accessed,
@@ -657,9 +664,9 @@ def changePasswordPrompt(request):
     if request.session.get('student_id'):
         student = Student.objects.get(student_id=request.session['student_id'])
         return render(request, 'main/changePassword.html', {'student': student})
-    elif request.session.get('faculty_id'):
-        faculty = Faculty.objects.get(faculty_id=request.session['faculty_id'])
-        return render(request, 'main/changePasswordFaculty.html', {'faculty': faculty})
+    elif request.session.get('teacher_id'):
+        teacher = Teacher.objects.get(teacher_id=request.session['teacher_id'])
+        return render(request, 'main/changePasswordTeacher.html', {'teacher': teacher})
     else:
         return redirect('std_login')
 
@@ -668,9 +675,9 @@ def changePhotoPrompt(request):
     if request.session.get('student_id'):
         student = Student.objects.get(student_id=request.session['student_id'])
         return render(request, 'main/changePhoto.html', {'student': student})
-    elif request.session.get('faculty_id'):
-        faculty = Faculty.objects.get(faculty_id=request.session['faculty_id'])
-        return render(request, 'main/changePhotoFaculty.html', {'faculty': faculty})
+    elif request.session.get('teacher_id'):
+        teacher = Teacher.objects.get(teacher_id=request.session['teacher_id'])
+        return render(request, 'main/changePhotoTeacher.html', {'teacher': teacher})
     else:
         return redirect('std_login')
 
@@ -696,25 +703,25 @@ def changePassword(request):
         return redirect('std_login')
 
 
-def changePasswordFaculty(request):
-    if request.session.get('faculty_id'):
-        faculty = Faculty.objects.get(
-            faculty_id=request.session['faculty_id'])
+def changePasswordTeacher(request):
+    if request.session.get('teacher_id'):
+        teacher = Teacher.objects.get(
+            teacher_id=request.session['teacher_id'])
         if request.method == 'POST':
-            if faculty.password == request.POST['oldPassword']:
+            if teacher.password == request.POST['oldPassword']:
                 # New and confirm password check is done in the client side
-                faculty.password = request.POST['newPassword']
-                faculty.save()
+                teacher.password = request.POST['newPassword']
+                teacher.save()
                 messages.success(request, 'Password was changed successfully')
-                return redirect('/facultyProfile/' + str(faculty.faculty_id))
+                return redirect('/teacherProfile/' + str(teacher.teacher_id))
             else:
                 print('error')
                 messages.error(
                     request, 'Password is incorrect. Please try again')
-                return redirect('/changePasswordFaculty/')
+                return redirect('/changePasswordTeacher/')
         else:
-            print(faculty)
-            return render(request, 'main/changePasswordFaculty.html', {'faculty': faculty})
+            print(teacher)
+            return render(request, 'main/changePasswordTeacher.html', {'teacher': teacher})
     else:
         return redirect('std_login')
 
@@ -739,22 +746,22 @@ def changePhoto(request):
         return redirect('std_login')
 
 
-def changePhotoFaculty(request):
-    if request.session.get('faculty_id'):
-        faculty = Faculty.objects.get(
-            faculty_id=request.session['faculty_id'])
+def changePhotoTeacher(request):
+    if request.session.get('teacher_id'):
+        teacher = Teacher.objects.get(
+            teacher_id=request.session['teacher_id'])
         if request.method == 'POST':
             if request.FILES['photo']:
-                faculty.photo = request.FILES['photo']
-                faculty.save()
+                teacher.photo = request.FILES['photo']
+                teacher.save()
                 messages.success(request, 'Photo was changed successfully')
-                return redirect('/facultyProfile/' + str(faculty.faculty_id))
+                return redirect('/teacherProfile/' + str(teacher.teacher_id))
             else:
                 messages.error(
                     request, 'Please select a photo')
-                return redirect('/changePhotoFaculty/')
+                return redirect('/changePhotoTeacher/')
         else:
-            return render(request, 'main/changePhotoFaculty.html', {'faculty': faculty})
+            return render(request, 'main/changePhotoTeacher.html', {'teacher': teacher})
     else:
         return redirect('std_login')
 
@@ -769,11 +776,11 @@ def guestStudent(request):
         return redirect('std_login')
 
 
-def guestFaculty(request):
+def guestTeacher(request):
     request.session.flush()
     try:
-        faculty = Faculty.objects.get(name='Guest Faculty')
-        request.session['faculty_id'] = str(faculty.faculty_id)
-        return redirect('facultyCourses')
+        teacher = Teacher.objects.get(name='Guest Teacher')
+        request.session['teacher_id'] = str(teacher.teacher_id)
+        return redirect('teacherCourses')
     except:
         return redirect('std_login')
