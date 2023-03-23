@@ -32,7 +32,7 @@ except KeyError as e:
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
-ALLOWED_HOSTS = ['51.120.246.183']
+ALLOWED_HOSTS = ['103.63.24.32']
 
 
 # Application definition
