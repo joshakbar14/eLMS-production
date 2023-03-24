@@ -1615,3 +1615,8 @@ section {
 #footer .footer-links a:hover {
   color: #3498db;
 }
+
+.tableauPlaceholder {
+  width: 800px;
+  margin: 0 auto;
+}
