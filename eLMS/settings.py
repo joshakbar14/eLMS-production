@@ -195,10 +195,12 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 # Email Settings
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
+EMAIL_HOST = 'mail.patriaco.id'
+EMAIL_PORT = 465
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your_email@gmail.com' # Replace with your Gmail address
-EMAIL_HOST_PASSWORD = 'your_password' # Replace with your Gmail password or App Password if 2-Step Verification is enabled
-DEFAULT_FROM_EMAIL = 'your_email@gmail.com' # Replace with your Gmail address
+EMAIL_HOST_USER = 'admin' # Replace with your Gmail address
+EMAIL_HOST_PASSWORD = 'patriacoadmin1234' # Replace with your Gmail password or App Password if 2-Step Verification is enabled
+DEFAULT_FROM_EMAIL = 'admin@patriaco.id' # Replace with your Gmail address
+
+CONTACT_EMAIL = 'patria@strategitransforma.com'
 
