@@ -5,10 +5,20 @@ from django.core.mail import send_mail
 
 # Create your views here.
 class ContactForm(forms.ModelForm):
-    name = forms.CharField(max_length=255)
-    email = forms.EmailField()
-    subject = forms.CharField(max_length=255)
-    message = forms.CharField(widget=forms.Textarea)
+    def __init__(self, *args, **kwargs):
+        super(ContactForm, self).__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.required = True
+            field.label = ''
+
+    class Meta:
+        fields = ('name', 'email', 'subject', 'message')
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control mt-1', 'id': 'title', 'name': 'title', 'placeholder': 'Title'}),
+            'email': forms.EmailField(),
+            'subject': forms.CharField(max_length=255),
+            'message': forms.CharField(widget=forms.Textarea),
+        }
 
 def homepage(request):
     return render(request, 'landing_page.html')
