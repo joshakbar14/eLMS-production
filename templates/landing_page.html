@@ -795,7 +795,19 @@
           <div class="col-lg-5 col-md-12" data-aos="fade-up" data-aos-delay="300">
             <form action="{% static 'forms/contact.php' %}" method="post" role="form" class="php-email-form">
               {% csrf_token %}
-              {{ form.as_p }}
+              <div class="form-group">
+                <input type="text" name="name" class="form-control" id="name" placeholder="Your Name" required>
+              </div>
+              <div class="form-group">
+                <input type="email" class="form-control" name="email" id="email" placeholder="Your Email" required>
+              </div>
+              <div class="form-group">
+                <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject" required>
+              </div>
+              <div class="form-group">
+                <textarea class="form-control" name="message" rows="5" placeholder="Message" required></textarea>
+              </div>
+              
               <div class="my-3">
                 <div class="loading">Loading</div>
                 <div class="error-message"></div>
