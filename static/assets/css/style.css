@@ -1190,7 +1190,6 @@ section {
   right: 0;
   height: 40px;
   opacity: 0;
-  transition: ease-in-out 0.3s;
   background: rgba(255, 255, 255, 0.85);
   display: inline-flex;
   justify-content: center;
