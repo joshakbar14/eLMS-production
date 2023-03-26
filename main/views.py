@@ -799,13 +799,23 @@ def contact(request):
 
         message = f"From: {name} <{email}>\n\n{message}"
 
-        send_mail(
+        try:
+            send_mail(
                 subject=subject,
                 message=message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[settings.CONTACT_EMAIL],
                 fail_silently=False,
             )
+
+            return render(request, 'success.html')
+
+        except Exception as e:
+            
+            print(f"Error sending email: {e}")
+
+            
+            return render(request, 'error.html')
 
     else:
         form = ContactForm()
