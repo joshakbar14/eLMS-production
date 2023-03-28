@@ -24,10 +24,10 @@
             <div class="container">
                <div class="signin-content">
                   <div class="signin-image">
-                     <figure><img src="{% static 'images/login-bg.jpg' %}" alt="sing up image"></figure>
+                     <figure><img src="static/images/login-bg.jpg" alt="sing up image"></figure>
                   </div>
                   <div class="signin-form">
-                     <h2 class="form-title">Sign in to eLMS</h2>
+                     <h2 class="form-title">Welcome to Dopamine</h2>
                      <form method="POST" class="register-form" id="login-form">
                            {% csrf_token %}
                            <div class="form-group">
@@ -52,6 +52,7 @@
                               <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
                                  <li><a class="dropdown-item" href="/student">Student</a></li>
                                  <li><a class="dropdown-item" href="/teacher">Teacher</a></li>
+                                 <li><a class="dropdown-item" href="/partner">Partner</a></li>
                               </ul>
                            </div>
                         </div>
